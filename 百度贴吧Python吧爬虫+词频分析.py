@@ -3,10 +3,12 @@
 # 第二页：https://tieba.baidu.com/f?kw=%E6%9D%8E%E6%AF%85&ie=utf-8&pn=50
 # 第三页：https://tieba.baidu.com/f?kw=%E6%9D%8E%E6%AF%85&ie=utf-8&pn=100
 # 第四页：https://tieba.baidu.com/f?kw=%E6%9D%8E%E6%AF%85&ie=utf-8&pn=150
+# https://tieba.baidu.com/f?kw=python&ie=utf-8&pn=
 import requests
 import re
 import time
 import random
+import numpy as np
 import collections
 import jieba
 import wordcloud
@@ -59,14 +61,14 @@ pool.join()
 time2 = time.time()
 
 # 打印topic中的内容
-k=1
-for every in topic:
-	print("第" + str(k) + "个帖子标题为：" + every)
-	k+=1
+#k=1
+#for every in topic:
+	#print("第" + str(k) + "个帖子标题为：" + every)
+	#k+=1
 
 print("采用4线程的所花的时间为：" + str(time2-time1))
 
-#写入文件模块
+#将爬取到的数据写入文件
 f=open("Python贴吧-前50页标题爬取.txt","w",encoding="utf-8")#电脑打开txt的方式默认为gbk，网络数据编码一般采用utf-8，因此在打开文件时应采用utf-8模式
 for each in topic:
 	f.write(each)
@@ -75,16 +77,49 @@ f.close()
 
 
 #词频分析模块
-pattern=re.compile(u'\t|\n|\.|-|:|;|\)|\(|\?|"')
-cut_topic=re.sub(pattern,'',str(topic))
+#pattern=re.compile(u'\t|\n|\.|-|:|;|\)|\(|\?|"')
+#cut_topic=re.sub(pattern,'',str(topic))
 
-seg_list_exact=jieba.cut(cut_topic,cut_all=False)
+#seg_list_exact=jieba.cut(cut_topic,cut_all=False)
+#object_list=[]
+#remove_words=[u'的', u'，',u'和', u'是', u'随着', u'对于', u'对',u'等',u'能',u'都',u'。',u' ',u'、',u'中',u'在',u'了',u'通常',u'如果',u'我们',u'需要',u'？',u'！',u',',u'我',u'们',u'吧',u'这',u'吗',u"'"]
+#for word in seg_list_exact:
+	#if word not in remove_words:
+		#object_list.append(word)
+
+#word_counts=collections.Counter(object_list)
+#word_counts_top50=word_counts.most_common(50)
+#print(word_counts_top50)
+
+
+#绘制词频图模块
+f=open("Python贴吧-前50页标题爬取.txt",encoding="utf-8")
+data=f.read()
+f.close()
+
+pattern=re.compile(u'\t|\n|\.|-|:|;|\)|\(|\?|"')
+cut_data=re.sub(pattern,'',data)
+
+slice_word=jieba.cut(cut_data,cut_all=False)
 object_list=[]
 remove_words=[u'的', u'，',u'和', u'是', u'随着', u'对于', u'对',u'等',u'能',u'都',u'。',u' ',u'、',u'中',u'在',u'了',u'通常',u'如果',u'我们',u'需要',u'？',u'！',u',',u'我',u'们',u'吧',u'这',u'吗',u"'"]
-for word in seg_list_exact:
+for word in slice_word:
 	if word not in remove_words:
 		object_list.append(word)
 
 word_counts=collections.Counter(object_list)
 word_counts_top50=word_counts.most_common(50)
-print(word_counts_top50)
+print(word_counts_top50)           #输出词频排名前50的词语与对应的次数
+#词频图的生成
+mask=np.array(Image.open('wordcloud1.jpg'))
+wc=wordcloud.WordCloud(
+	font_path='C:/Windows/Fonts/simhei.ttf',
+	mask=mask,
+	max_words=200,
+	max_font_size=100)
+wc.generate_from_frequencies(word_counts)
+image_colors=wordcloud.ImageColorGenerator(mask)
+wc.recolor(color_func=image_colors)
+plt.imshow(wc)
+plt.axis('off')
+plt.show()
